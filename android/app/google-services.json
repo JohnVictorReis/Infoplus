@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "982828684144",
+    "project_id": "infoplus-96862",
+    "storage_bucket": "infoplus-96862.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982828684144:android:a403acb063d2d9b23df5b5",
+        "android_client_info": {
+          "package_name": "com.example.projeto_infoplus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxDhyWmUH6_F1_tJj3QK9sIfp8z21L7bY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982828684144:android:88cd04ff5c71cdb63df5b5",
+        "android_client_info": {
+          "package_name": "com.john.victor.infoplus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxDhyWmUH6_F1_tJj3QK9sIfp8z21L7bY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
