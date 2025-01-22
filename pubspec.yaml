@@ -41,6 +41,8 @@ dependencies:
   firebase_auth: ^4.17.6 
   fluttertoast: 8.2.5
   http: ^1.2.0
+  #Url Launcher adicionado dia 12/01/2025
+  url_launcher: ^6.1.7
   
 dev_dependencies:
   flutter_test:

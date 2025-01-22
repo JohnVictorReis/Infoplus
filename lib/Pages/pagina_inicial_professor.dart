@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:projeto_infoplus/Pages/pagina_cadastro.dart';
 import 'package:projeto_infoplus/Pages/pagina_login.dart';
+import 'package:projeto_infoplus/Pages/pagina_notificacao.dart';
 import 'package:projeto_infoplus/Services/auth_service.dart';
 import 'package:projeto_infoplus/Pages/auth_page.dart';
 
@@ -167,7 +168,7 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const PaginaLogin(),
+                                builder: (context) => const PaginaNotificacao(),
                               ),
                             );
                         

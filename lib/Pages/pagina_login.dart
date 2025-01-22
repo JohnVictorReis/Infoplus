@@ -61,7 +61,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                 ), 
               ),
               SizedBox(
-                height: 50,
+                height: 30 ,
               ),
               Text(
                 'Bem Vindo',  
