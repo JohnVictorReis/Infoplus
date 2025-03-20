@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, unused_import
-// Route Pages Imports                          
+// Route Pages Imports     /* ignore: unused_import */             
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_infoplus/Pages/auth_page.dart';
 import 'package:projeto_infoplus/Pages/pagina_cadastro.dart';
@@ -28,6 +29,8 @@ Future<void> main() async {
   await Firebase.initializeApp(
   options: DefaultFirebaseOptions.currentPlatform,
 );
+
+ FirebaseAuth.instance.setLanguageCode("pt-BR");
   runApp(AplicativoInfoPlus());
 }
 

@@ -51,7 +51,9 @@ android {
         applicationId "com.example.projeto_infoplus"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+
+        //Alterando a versão minima do SDK para 23, tendo em vista atualização da versão do firebase auth (27/02)
+        minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

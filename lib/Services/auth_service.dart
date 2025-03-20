@@ -289,6 +289,7 @@ Future<void> signout({
 
 // ignore_for_file: unused_local_variable, unused_element, unused_import
 
+/* comentado em 04/02/25 para tentativa de ajuste do login e logout
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -322,7 +323,27 @@ class AuthService {
           .get();
 
       if (userDoc.exists) {
-        String role = userDoc['role'];
+        //mudando para ver se o login volta a funcionar
+        //String role = userDoc['role'];
+var roleData = userDoc.get('role');
+
+String role = '';
+if (roleData is String) {
+  role = roleData; // Correto se for String
+} else if (roleData is List && roleData.isNotEmpty) {
+  role = roleData.first.toString(); // Se for uma lista, pega o primeiro item como String
+} else {
+  Fluttertoast.showToast(
+    msg: "Erro: O campo 'role' não está formatado corretamente.",
+    toastLength: Toast.LENGTH_LONG,
+    gravity: ToastGravity.SNACKBAR,
+    backgroundColor: Colors.black54,
+    textColor: Colors.white,
+    fontSize: 14.0,
+  );
+  return; // Para evitar erro na navegação
+}
+
 
         // Verifica se o widget ainda está montado antes de usar o contexto
         if (context.mounted) {
@@ -383,13 +404,209 @@ class AuthService {
         textColor: Colors.white,
         fontSize: 14.0,
       );
-    } catch (e) {
-      // Tratamento genérico de erros
+} catch (e) {
+  print("Erro ao fazer login: $e"); // Para ver o erro no console
+
+  Fluttertoast.showToast(
+    msg: "Erro inesperado: $e",
+    toastLength: Toast.LENGTH_LONG,
+    gravity: ToastGravity.SNACKBAR,
+    backgroundColor: Colors.redAccent,
+    textColor: Colors.white,
+    fontSize: 14.0,
+  );
+}
+  }
+
+  // Método para realizar logout
+  Future<void> signout({required BuildContext context}) async {
+    await FirebaseAuth.instance.signOut();
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (context.mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) => const PaginaLogin(),
+        ),
+      );
+    }
+  }
+}
+*/
+
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:projeto_infoplus/Pages/pagina_inicial.dart';
+import 'package:projeto_infoplus/Pages/pagina_inicial_professor.dart';
+import 'package:projeto_infoplus/Pages/pagina_login.dart';
+
+class AuthService {
+  // Método para realizar login
+  Future<void> signin({
+    required String email,
+    required String password,
+    required BuildContext context,
+  }) async {
+    try {
+      // Realiza o login do usuário
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      // Coleta o UID do usuário logado
+      String uid = userCredential.user!.uid;
+
+      // Busca o papel (role) do usuário no Firestore
+      DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (!userDoc.exists || userDoc.data() == null) {
+        Fluttertoast.showToast(
+          msg: "Erro: Usuário não encontrado no Firestore.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.SNACKBAR,
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
+        return;
+      }
+
+      // Obtendo os dados corretamente
+      Map<String, dynamic>? userData = userDoc.data();
+      
+      // Verifica se o campo 'role' está presente
+      if (userData == null || !userData.containsKey('role')) {
+        Fluttertoast.showToast(
+          msg: "Erro: O campo 'role' não foi encontrado no Firestore.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.SNACKBAR,
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
+        return;
+      }
+
+      // Pegando 'role' corretamente e garantindo que seja uma String
+      final dynamic roleData = userData['role'];
+      if (roleData == null) {
+        Fluttertoast.showToast(
+          msg: "Erro: O campo 'role' está vazio.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.SNACKBAR,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
+        return;
+      }
+
+      // 🔹 Verifica se é uma String ou uma Lista
+      String role = '';
+      if (roleData is String) {
+        role = roleData; // Correto se for String
+      } else if (roleData is List && roleData.isNotEmpty) {
+        role = roleData.first.toString(); // Se for uma lista, pega o primeiro item
+      } else {
+        Fluttertoast.showToast(
+          msg: "Erro: O campo 'role' está em um formato inesperado.",
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.SNACKBAR,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
+        return;
+      }
+
+      print("Role do usuário: $role"); // Log para depuração
+
+      // Verifica se o widget ainda está montado antes de usar o contexto
+      if (context.mounted) {
+        if (role == 'professor') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const PaginaInicialProfessor(),
+            ),
+          );
+        } else if (role == 'usuario') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) => const PaginaInicial(),
+            ),
+          );
+        } else if (role == 'admin') {
+          Fluttertoast.showToast(
+            msg: "Acesso negado para administradores.",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.SNACKBAR,
+            backgroundColor: Colors.black54,
+            textColor: Colors.white,
+            fontSize: 14.0,
+          );
+        } else {
+          Fluttertoast.showToast(
+            msg: "Tipo de usuário não definido.",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.SNACKBAR,
+            backgroundColor: Colors.black54,
+            textColor: Colors.white,
+            fontSize: 14.0,
+          );
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      // Tratamento de erros do FirebaseAuth
+      String message = '';
+
+      switch (e.code) {
+        case 'invalid-email':
+          message = 'O formato do e-mail está incorreto.';
+          break;
+        case 'user-disabled':
+          message = 'Este usuário foi desativado.';
+          break;
+        case 'user-not-found':
+          message = 'Usuário não encontrado. Verifique seu e-mail.';
+          break;
+        case 'wrong-password':
+          message = 'Senha incorreta. Tente novamente.';
+          break;
+        case 'network-request-failed':
+          message = 'Falha na conexão com a internet. Verifique sua rede.';
+          break;
+        case 'too-many-requests':
+          message = 'Muitas tentativas de login. Tente novamente mais tarde.';
+          break;
+        default:
+          message = 'Erro desconhecido: ${e.code}';
+          break;
+      }
+
       Fluttertoast.showToast(
-        msg: "Ocorreu um erro inesperado.",
+        msg: message,
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.SNACKBAR,
-        backgroundColor: Colors.black54,
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        fontSize: 14.0,
+      );
+    } catch (e) {
+      print("Erro ao fazer login: $e"); // Para ver o erro no console
+
+      Fluttertoast.showToast(
+        msg: "Erro inesperado: $e",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.SNACKBAR,
+        backgroundColor: Colors.redAccent,
         textColor: Colors.white,
         fontSize: 14.0,
       );

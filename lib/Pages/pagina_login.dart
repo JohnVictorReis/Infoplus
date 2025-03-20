@@ -61,13 +61,13 @@ class _PaginaLoginState extends State<PaginaLogin> {
                 ), 
               ),
               SizedBox(
-                height: 30 ,
+                height: 20  ,
               ),
               Text(
                 'Bem Vindo',  
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 30,
+                  fontSize: 25,
                 ),
               ),
               SizedBox(
@@ -76,11 +76,11 @@ class _PaginaLoginState extends State<PaginaLogin> {
               Text(
                 'Acesse sua conta',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 15,
                 ),
               ),
               SizedBox(
-                height: 30,
+                height: 25,
               ),
 //Campo do e-mail
               Padding(
