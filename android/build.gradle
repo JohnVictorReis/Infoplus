@@ -1,22 +1,14 @@
 buildscript {
+    ext.kotlin_version = '2.1.10' // Atualizando para Kotlin 2.1.10
 
-    //ext.kotlin_version = '<latest-version>' 
-    //! Linha acima foi adicionada para atualização do arquivo devido a erro de versão do Kotlin Gradle Plugin, utilizando a versão mais recente do kotlin.
-    //? Atualizando a versão do kotlin para a recomendada devido a erros no debug do projeto (12/10/2025).
-    //.kotlin_version = '1.7.10'
-    ext.kotlin_version = '1.9.10'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-
-        // Usando o plugin Kotlin Gradle com a versão especificada acima
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // Atualize o plugin do Gradle caso necessário
-        classpath 'com.android.tools.build:gradle:8.0.2' // Certifique-se de que a versão é compatível
-
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // Usando a versão 2.1.10
+        classpath 'com.android.tools.build:gradle:8.2.1' // Verifique se a versão do AGP é compatível
     }
 }
 
@@ -31,9 +23,6 @@ rootProject.buildDir = '../build'
 
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(':app')
 }
 
 tasks.register("clean", Delete) {

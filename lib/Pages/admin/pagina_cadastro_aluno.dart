@@ -8,14 +8,14 @@ import 'package:projeto_infoplus/Services/auth_service.dart';
 final TextEditingController _emailController = TextEditingController();
 final TextEditingController _passwordController = TextEditingController();
 
-class PaginaCadastro extends StatefulWidget {
-  const PaginaCadastro({super.key});
+class PaginaCadastroAluno extends StatefulWidget {
+  const PaginaCadastroAluno({super.key});
 
   @override
-  State<PaginaCadastro> createState() => _PaginaCadastroState();
+  State<PaginaCadastroAluno> createState() => _PaginaCadastroState();
 }
 
-class _PaginaCadastroState extends State<PaginaCadastro> {
+class _PaginaCadastroState extends State<PaginaCadastroAluno> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +68,7 @@ class _PaginaCadastroState extends State<PaginaCadastro> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20.0),
                     child: TextField(
-                      controller: _emailController,
+                        controller: _emailController,
                         decoration: InputDecoration(
                             border: InputBorder.none, hintText: 'Email')),
                   ),
@@ -88,7 +88,7 @@ class _PaginaCadastroState extends State<PaginaCadastro> {
                   child: Padding(
                     padding: const EdgeInsets.only(left: 20.0),
                     child: TextField(
-                      controller: _passwordController,
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                             border: InputBorder.none, hintText: 'Senha')),
@@ -124,9 +124,9 @@ class _PaginaCadastroState extends State<PaginaCadastro> {
 //Botão Cadastro
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
-
-                  child: ElevatedButton(
-                    onPressed: () {}/*async{
+                child: ElevatedButton(
+                    onPressed:
+                        () {} /*async{
                       //Comentado devido a regra de negócio
                       
                      await AuthService().signup(
@@ -136,13 +136,12 @@ class _PaginaCadastroState extends State<PaginaCadastro> {
                     },*/
                     ,
                     child: Text(
-                    'Cadastrar',
-                    style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15),
-                  )),
-                
+                      'Cadastrar',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15),
+                    )),
               ),
               SizedBox(
                 height: 25,

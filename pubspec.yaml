@@ -39,12 +39,16 @@ dependencies:
   firebase_core: ^3.12.1
   cloud_firestore: ^5.6.5
   firebase_auth: ^5.5.1 
-  fluttertoast: ^8.2.12
+  #fluttertoast: ^8.2.12
+  #Trocando o flutter toast pelo get.
+  get: ^4.7.2
   http: ^1.2.0
   #Url Launcher adicionado dia 12/01/2025
-  url_launcher: ^6.1.7
+  url_launcher: ^6.3.1
+  webview_flutter: ^4.11.0
+  flutter_web_browser: ^0.17.3
   csv: ^6.0.0
-  file_picker: ^9.2.1
+  file_picker: ^10.1.2
 
 dev_dependencies:
   flutter_test:
@@ -79,7 +83,12 @@ flutter:
   - "assets/images/notas.png"
   - "assets/images/noticias.png"
   - "assets/images/calendario.png"
-  
+  - "assets/images/404notfound.png"
+  - "C:/Projeto_Infoplus/projeto_infoplus/assets/images/gif/404.gif"
+  - "C:/Projeto_Infoplus/projeto_infoplus/assets/images/notfound.png"
+  - "assets/images/professor.png"
+  - "assets/images/aluno.png"
+  - "assets/images/adm.png"
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

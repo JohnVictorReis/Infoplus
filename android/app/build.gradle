@@ -2,13 +2,12 @@ plugins {
     id "com.android.application"
     // START: FlutterFire Configuration
     id 'com.google.gms.google-services'
-    // END: FlutterFire Configurationa
+    // END: FlutterFire Configuration
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-//def localProperties = new Properties()ext.kotlin_version  
-//! O código acima foi atualizado para a versão abaixo devido a erro de versão do Kotlin Gradle Plugin
+// Definindo a versão do Kotlin
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -29,17 +28,19 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.projeto_infoplus"
-    compileSdkVersion 34
-    flutter.compileSdkVersion
+    // Atualizando a versão do SDK para 35, tendo em vista atualização do gradle e AGP
+    compileSdkVersion 35
+    //flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // Atualizado para compatibilidade com AGP 8.2.1 e Java 21
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17' // Atualizado para compatibilidade com AGP 8.2.1 e Java 21
     }
 
     sourceSets {
@@ -47,14 +48,12 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // TODO: Especificar seu próprio ID único de aplicação (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.projeto_infoplus"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-
-        //Alterando a versão minima do SDK para 23, tendo em vista atualização da versão do firebase auth (27/02)
+        
+        // Definindo o minSdkVersion e targetSdkVersion no lugar correto
         minSdkVersion 23
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 35  // Agora dentro do bloco defaultConfig
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
@@ -62,8 +61,7 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // TODO: Adicionar sua própria configuração de assinatura para a versão release.
             signingConfig signingConfigs.debug
         }
     }
@@ -74,7 +72,7 @@ flutter {
 }
 
 dependencies {
-    //! O código abaixo foi atualizado para a versão abaixo devido a erro de versão do Kotlin Gradle Plugin
+    // Atualizando a versão do Kotlin Gradle Plugin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'com.google.android.gms:play-services-base:18.2.0' // Atualize para a última versão
+    implementation 'com.google.android.gms:play-services-base:18.2.0' // A versão pode ser mais atual
 }
