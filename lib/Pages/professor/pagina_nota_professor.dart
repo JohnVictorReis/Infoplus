@@ -9,9 +9,11 @@ import 'package:projeto_infoplus/Pages/professor/envia_csv.dart';
 import 'package:projeto_infoplus/Pages/professor/mostra_csv_professor.dart';
 import 'package:projeto_infoplus/Pages/admin/pagina_cadastro_aluno.dart';
 import 'package:projeto_infoplus/Pages/geral/pagina_login.dart';
+import 'package:projeto_infoplus/Pages/professor/pagina_inicial_professor.dart';
 import 'package:projeto_infoplus/Services/auth_service.dart';
 import 'package:projeto_infoplus/Pages/geral/auth_page.dart';
 import 'package:projeto_infoplus/Pages/usuario/mostra_csv.dart';
+import 'package:projeto_infoplus/Pages/professor/perfil_professor.dart';
 
 //teste pra rodar a pagina iniciar com statefull e adicionar o menu de baixo
 
@@ -51,7 +53,10 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.black,
         title: Text(
           'INFO+',
           style: GoogleFonts.roboto(
@@ -115,8 +120,8 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
                               );
                             },
                             icon: 'assets/images/notas.png',
-                            title: 'CADASTRAR NOTA',
-                            color: Color.fromRGBO(33, 33, 33, 1),
+                            title: 'CADASTRAR',
+                            color: Colors.black,
                             fontColor: Colors.white,
                           ),
                           _cardMenu(
@@ -130,8 +135,8 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
                               );
                             },
                             icon: 'assets/images/noticias.png',
-                            title: 'VIZUALIZAR NOTAS ',
-                            color: Color.fromRGBO(33, 33, 33, 1),
+                            title: 'VIZUALIZAR',
+                            color: Colors.black,
                             fontColor: Colors.white,
                           ),
                         ],
@@ -151,7 +156,7 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
       bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.grey[900],
+          backgroundColor: Colors.black,
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white,
           selectedFontSize: 15,
@@ -170,8 +175,24 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
               _currentIndex = index;
             });
             if (_currentIndex == 2) {
-              Navigator.pushNamed(context, '/home/user');
-            } else if (_currentIndex == 0) {}
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PerfilProfessor(),
+                ),
+              );
+            } else if (_currentIndex == 0) {
+              // Add your configuration navigation here if needed
+            } else if (_currentIndex == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PaginaInicialProfessor(
+                    turmas: [],
+                  ),
+                ),
+              );
+            }
           }),
     );
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
