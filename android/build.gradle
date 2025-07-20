@@ -1,6 +1,7 @@
 buildscript {
-    ext.kotlin_version = '2.1.10' // Atualizando para Kotlin 2.1.10
-
+    //ext.kotlin_version = '2.1.10' // Atualizando para Kotlin 2.1.10
+    //Atualizando para Kotlin 1.9.0 devido a erros listados em compilação do código
+    ext.kotlin_version = '1.9.0'
     repositories {
         google()
         mavenCentral()
@@ -10,6 +11,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version" // Usando a versão 2.1.10
         classpath 'com.android.tools.build:gradle:8.2.1' // Verifique se a versão do AGP é compatível
     }
+
 }
 
 allprojects {
