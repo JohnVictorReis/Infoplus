@@ -1,4 +1,4 @@
-
+// ignore_for_file: avoid_print
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,4 +10,3 @@ Future<void> launchURL(String url) async {
     print('Não foi possível abrir a URL: $url');
   }
 }
-
