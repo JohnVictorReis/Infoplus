@@ -38,11 +38,14 @@ dependencies:
   google_fonts:
   firebase_core: ^3.12.1
   cloud_firestore: ^5.6.9
+  #Dependencia Cloud para uso das funções na nuvem
+  cloud_functions: any
   firebase_auth: ^5.6.0
   #fluttertoast: ^8.2.12
   #Trocando o flutter toast pelo get.
   get: ^4.7.2
-  http: ^1.2.0
+   #Teste de dependência para http
+  http: ^0.13.5
   #Url Launcher adicionado dia 12/01/2025
   url_launcher: ^6.3.1
   webview_flutter: ^4.11.0
@@ -51,6 +54,9 @@ dependencies:
   file_picker: ^10.2.0
   firebase_storage: ^12.4.7
   multi_select_flutter: ^4.1.3
+  permission_handler: ^11.0.1
+
+
 
 dev_dependencies:
   flutter_test:
