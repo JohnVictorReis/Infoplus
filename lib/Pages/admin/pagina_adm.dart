@@ -5,6 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:projeto_infoplus/Pages/admin/pagina_cadastro_materia.dart';
+import 'package:projeto_infoplus/Pages/admin/pagina_cadastro_professor.dart';
+import 'package:projeto_infoplus/Pages/admin/pagina_reset_login.dart';
 import 'package:projeto_infoplus/Pages/professor/envia_csv.dart';
 import 'package:projeto_infoplus/Pages/professor/mostra_csv_professor.dart';
 import 'package:projeto_infoplus/Pages/admin/pagina_cadastro_aluno.dart';
@@ -51,7 +54,10 @@ class _PaginaAdmState extends State<PaginaAdm> {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+        backgroundColor: Colors.black,
         title: Text(
           'INFO+',
           style: GoogleFonts.roboto(
@@ -126,13 +132,51 @@ class _PaginaAdmState extends State<PaginaAdm> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      const PaginaMostragemCSV(),
+                                      const PaginaCadastroProfessor(),
                                 ),
                               );
                             },
                             icon: 'assets/images/professor.png',
                             title: 'PROFESSORES',
                             //color: Color.fromRGBO(33, 33, 33, 1),
+                            color: Colors.black,
+                            fontColor: Colors.white,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 28),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _cardMenu(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PaginaResetSenhas(), // crie essa página
+                                ),
+                              );
+                            },
+                            icon:
+                                'assets/images/senha.png', // ícone reutilizado
+                            title: 'RESET SENHAS',
+                            color: Colors.black,
+                            fontColor: Colors.white,
+                          ),
+                          _cardMenu(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PaginaCadastroMateria(), // crie essa página
+                                ),
+                              );
+                            },
+                            icon:
+                                'assets/images/materias.png', // ícone reutilizado
+                            title: 'MATERIAS',
                             color: Colors.black,
                             fontColor: Colors.white,
                           ),
@@ -153,7 +197,7 @@ class _PaginaAdmState extends State<PaginaAdm> {
       bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.grey[900],
+          backgroundColor: Colors.black,
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white,
           selectedFontSize: 15,
