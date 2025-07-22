@@ -7,6 +7,7 @@ import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:projeto_infoplus/Pages/admin/pagina_adm.dart';
 import 'package:projeto_infoplus/Pages/admin/pagina_cadastro_aluno.dart';
+import 'package:projeto_infoplus/Pages/admin/pagina_exclusao_aluno.dart';
 import 'package:projeto_infoplus/Pages/geral/pagina_login.dart';
 import 'package:projeto_infoplus/Services/auth_service.dart';
 import 'package:projeto_infoplus/Pages/geral/auth_page.dart';
@@ -152,18 +153,16 @@ class _PaginaInicialAdmState extends State<PaginaInicialAdm> {
                           _cardMenu(
                             onTap: () {
                               // Atualizando para usar o flutter_web_browser
-                              FlutterWebBrowser.openWebPage(
-                                url:
-                                    'https://ensino.araquari.ifc.edu.br/?_gl=1*uz1tfz*_ga*NzYzNTM0NTkxLjE3NDU2MTI2MTI.*_ga_SCB6Z3PWKN*MTc0NTYxMjYxMi4xLjAuMTc0NTYxMjYxMi42MC4wLjA.', // URL a ser aberta
-                                customTabsOptions: CustomTabsOptions(
-                                  colorScheme: CustomTabsColorScheme.dark,
-                                  toolbarColor: Colors
-                                      .black, // Cor da barra de ferramentas
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PaginaExclusaoAlunos(),
                                 ),
                               );
                             },
                             icon: 'assets/images/noticias.png',
-                            title: 'ADM2',
+                          title: 'EXCLUIR ALUNOS',
                             //color: Color.fromRGBO(33, 33, 33, 1),
                             color: Colors.black,
                             fontColor: Colors.white,
