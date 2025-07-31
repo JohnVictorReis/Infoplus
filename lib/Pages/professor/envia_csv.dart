@@ -1,14 +1,14 @@
 // ignore_for_file: unused_local_variable, avoid_print
 
 import 'dart:convert';
-import 'dart:math';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:csv/csv.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:projeto_infoplus/Pages/Components/botoes.dart';
 
 class PaginaCadastroCSV extends StatefulWidget {
@@ -21,6 +21,9 @@ class PaginaCadastroCSV extends StatefulWidget {
 class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
   String? selectedTurma;
   String? selectedMateria;
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   List<String> turmas = [];
   List<String> materias = [];
@@ -50,7 +53,6 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
       print("Erro ao recuperar turmas: $e");
     }
   }
-
   Future<void> _uploadDataToFirestore(List<List<dynamic>> data) async {
     try {
       if (selectedTurma == null || selectedMateria == null) {
@@ -60,7 +62,6 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
         return;
       }
 
-      // Verificar se o documento da matéria existe na coleção antes de adicionar as notas
       DocumentSnapshot materiaDoc = await FirebaseFirestore.instance
           .collection('turmas')
           .doc(selectedTurma)
@@ -75,13 +76,14 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
         return;
       }
 
-      // Referência da subcoleção de notas dentro da turma e matéria selecionada
       CollectionReference notasCollection = FirebaseFirestore.instance
           .collection('turmas')
           .doc(selectedTurma)
           .collection('materias')
           .doc(selectedMateria)
           .collection('notas');
+
+      List<String> naoEncontrados = [];
 
       for (var row in data) {
         var aluno = row[0];
@@ -97,7 +99,7 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
             .get();
 
         if (usersSnapshot.docs.isEmpty) {
-          print("Aluno com CPF $cpfAluno não encontrado.");
+          naoEncontrados.add(cpfAluno);
           continue;
         }
 
@@ -105,7 +107,6 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
         String email = alunoDoc['email'];
         String uid = alunoDoc.id;
 
-        // Envia a nota para a subcoleção
         await notasCollection.add({
           'aluno': aluno,
           'atividade': atividade,
@@ -113,31 +114,35 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
           'email': email,
         });
 
-        //Criar notificação com base no CPF e atividade
         String ultimos4 = cpfAluno.length >= 4
             ? cpfAluno.substring(cpfAluno.length - 4)
             : cpfAluno;
+
         String mensagem =
             "Nova nota lançada para a matéria '$selectedMateria' atividade '$atividade':";
 
-        // Criando um ID único para cada notificação (utilizando o timestamp)
-        String notificationId =
-            "${DateTime.now().millisecondsSinceEpoch}"; // ID único para cada notificação
+        String notificationId = "${DateTime.now().millisecondsSinceEpoch}";
 
-        // Salvando a notificação no Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(uid)
             .collection('notificacoes')
-            .doc(notificationId) // ID único por notificação
+            .doc(notificationId)
             .set({
           'mensagem': mensagem,
           'timestamp': FieldValue.serverTimestamp(),
         });
       }
 
+      String msg = "Notas cadastradas com sucesso!";
+      if (naoEncontrados.isNotEmpty) {
+        msg +=
+            "\n\nOs seguintes CPFs não foram encontrados:\n${naoEncontrados.join('\n')}";
+        _mostrarDialogoErroUsuarios(naoEncontrados);
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Notas cadastradas com sucesso!")),
+        SnackBar(content: Text(msg)),
       );
       Navigator.pop(context);
     } catch (e) {
@@ -145,6 +150,29 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
         SnackBar(content: Text("Erro ao cadastrar notas: $e")),
       );
     }
+  }
+
+//Aqui pra cima é o código que foi comentado para teste da função de upload de notas juntamente com a criação do token de notificação
+  void _mostrarDialogoErroUsuarios(List<String> naoEncontrados) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Usuários não encontrados"),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView(
+            shrinkWrap: true,
+            children: naoEncontrados.map((cpf) => Text("- $cpf")).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: Text("Fechar"),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        ],
+      ),
+    );
   }
 
   Future<void> _updateMaterias(String turma) async {
@@ -171,16 +199,22 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
       File file = File(result.files.single.path!);
-      final input = file.readAsStringSync();
+
+      final bytes = await file.readAsBytes();
+      late String input;
+      try {
+        input = const Utf8Decoder().convert(bytes);
+      } catch (_) {
+        input = const Latin1Decoder().convert(bytes);
+      }
+
       List<List<dynamic>> data =
           CsvToListConverter(fieldDelimiter: ';').convert(input);
 
-      // Ignora a primeira linha (cabeçalho)
       setState(() {
         csvData = data.skip(1).toList();
       });
 
-      // Salvar os dados no Firestore
       await _uploadDataToFirestore(csvData);
     }
   }
