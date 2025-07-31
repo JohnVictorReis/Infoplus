@@ -1,11 +1,17 @@
 // ignore_for_file: unused_local_variable, avoid_print
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Importações necessárias                          //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projeto_infoplus/Pages/Components/botoes.dart';
-import 'package:flutter/scheduler.dart'; // Importando o SchedulerBinding
+import 'package:flutter/scheduler.dart';
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Tela de Visualização de Notas do Aluno           //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaMostragemNotasAluno extends StatefulWidget {
   const PaginaMostragemNotasAluno({super.key});
 
@@ -15,24 +21,28 @@ class PaginaMostragemNotasAluno extends StatefulWidget {
 }
 
 class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Variáveis de estado                              //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   String? selectedMateria;
-  List<String> materias = []; // Lista de matérias da turma do aluno
+  List<String> materias = [];
   Stream<QuerySnapshot> _dadosStream = Stream.empty();
-  String? turma; // Turma do aluno
-  bool showError = false; // Flag para mostrar o erro (GIF)
+  String? turma;
+  bool showError = false;
 
   @override
   void initState() {
     super.initState();
-    _getTurmaEMaterias(); // Buscar a turma e matérias do aluno
+    _getTurmaEMaterias(); // Buscar turma e matérias do aluno
   }
 
-  // Função para obter as matérias associadas à turma do aluno
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Recupera a turma e matérias da coleção do aluno  //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getTurmaEMaterias() async {
     try {
       final String alunoEmail = FirebaseAuth.instance.currentUser!.email!;
 
-      // Obtém o documento do aluno na coleção 'users'
       DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
           .instance
           .collection('users')
@@ -40,23 +50,19 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
           .get();
 
       if (userDoc.exists && userDoc.data() != null) {
-        // Recupera a turma associada ao aluno (agora com o campo 'turma')
         turma = userDoc.data()!['turma'];
 
-        setState(() {
-          // A turma foi definida, agora busca as matérias dessa turma
-        });
+        setState(() {});
 
-        // Recupera as matérias da turma
         QuerySnapshot materiasSnapshot = await FirebaseFirestore.instance
             .collection('turmas')
-            .doc(turma) // Usa a turma recuperada do campo 'turma' do aluno
+            .doc(turma)
             .collection('materias')
             .get();
 
         for (var doc in materiasSnapshot.docs) {
           setState(() {
-            materias.add(doc['nome']); // Adiciona as matérias à lista
+            materias.add(doc['nome']);
           });
         }
       }
@@ -65,7 +71,9 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
     }
   }
 
-  // Função para carregar as notas com base na matéria selecionada
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Carrega as notas da matéria selecionada          //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _loadNotas() async {
     try {
       if (selectedMateria == null || turma == null) {
@@ -75,38 +83,41 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
       }
 
       setState(() {
-        showError = false; // Reseta o erro
+        showError = false;
         _dadosStream = FirebaseFirestore.instance
             .collection('turmas')
-            .doc(
-                turma!) // A turma agora é dinâmica, vem do campo 'turma' do aluno
+            .doc(turma!)
             .collection('materias')
             .doc(selectedMateria)
             .collection('notas')
             .where('email',
-                isEqualTo: FirebaseAuth.instance.currentUser!
-                    .email) // Filtra pelas notas do aluno logado
-            .snapshots(); // Atribui o stream corretamente
+                isEqualTo: FirebaseAuth.instance.currentUser!.email)
+            .snapshots();
       });
     } catch (e) {
       print("Erro ao carregar notas: $e");
     }
   }
 
-  // Função para calcular a média das notas
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Calcula a média das notas                        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   double _calcularMedia(List<QueryDocumentSnapshot> docs) {
     double soma = 0.0;
     int count = 0;
 
     for (var doc in docs) {
-      var nota = doc['nota'] ?? 0.0; // Garantir que a nota seja um número
+      var nota = doc['nota'] ?? 0.0;
       soma += nota;
       count++;
     }
 
-    return count > 0 ? soma / count : 0.0; // Evita divisão por zero
+    return count > 0 ? soma / count : 0.0;
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Interface da Tela                                //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,6 +126,9 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+            // Dropdown para selecionar matéria                  //
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -128,10 +142,9 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
                   value: selectedMateria,
                   hint: Text("Selecione uma matéria"),
                   icon: Icon(Icons.arrow_drop_down),
-                  isExpanded:
-                      true, // Faz o dropdown ocupar toda a largura disponível
+                  isExpanded: true,
                   style: TextStyle(color: Colors.black),
-                  dropdownColor: Colors.grey[200], // Cor de fundo do dropdown
+                  dropdownColor: Colors.grey[200],
                   onChanged: (String? newValue) {
                     setState(() {
                       selectedMateria = newValue;
@@ -148,7 +161,9 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
             ),
             SizedBox(height: 20),
 
-            // Botão para carregar as notas
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+            // Botão para buscar as notas                        //
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
             MyButton(
               onTap: () async {
                 await _loadNotas();
@@ -158,7 +173,9 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
             ),
             SizedBox(height: 20),
 
-            // Exibe os dados carregados do Firestore em uma DataTable com personalização de bordas e bordas arredondadas
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+            // Área de exibição de notas ou erro                //
+            //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: _dadosStream,
@@ -174,9 +191,7 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
                   if (snapshot.hasData) {
                     var docs = snapshot.data!.docs;
 
-                    // Se não houver dados, exibe o erro com o GIF
                     if (docs.isEmpty) {
-                      // Usando Future.delayed para garantir que a imagem seja exibida após a construção
                       Future.delayed(Duration.zero, () {
                         setState(() {
                           showError = true;
@@ -198,12 +213,13 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
 
                     return Column(
                       children: [
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+                        // Tabela com notas                                //
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(
-                                color: Colors.black), // Borda para a tabela
-                            borderRadius: BorderRadius.circular(
-                                10), // Arredondamento nas bordas
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: DataTable(
                             headingRowColor:
@@ -222,7 +238,10 @@ class _PaginaMostragemNotasAlunoState extends State<PaginaMostragemNotasAluno> {
                           ),
                         ),
                         SizedBox(height: 20),
-                        // Exibe a média das notas
+
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+                        // Exibição da média das notas                    //
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
                         Text(
                           'Média atual: ${_calcularMedia(docs).toStringAsFixed(1)}',
                           style: TextStyle(
