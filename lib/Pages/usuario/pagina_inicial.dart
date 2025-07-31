@@ -1,9 +1,15 @@
-//ignore_for_file: non_constant_identifier_names, avoid_print, unnecessary_to_list_in_spreads, deprecated_member_use
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//Importações principais do sistema                 //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:projeto_infoplus/Pages/Components/botoes.dart';
 import 'package:projeto_infoplus/Pages/geral/pagina_login.dart';
 import 'package:projeto_infoplus/Pages/usuario/mostra_csv.dart';
@@ -21,6 +27,12 @@ class _PaginaInicialState extends State<PaginaInicial> {
   String userId = '';
   List<Map<String, dynamic>> notificacoes = [];
 
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //Função para logout do usuário                     //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   void signOutUser() {
     FirebaseAuth.instance.signOut();
   }
@@ -28,10 +40,113 @@ class _PaginaInicialState extends State<PaginaInicial> {
   @override
   void initState() {
     super.initState();
+    solicitarPermissaoNotificacao();
     _getAlunoNameECpf();
+    _configurarFirebaseMessaging();
+    
   }
 
-  // Função para obter o nome e CPF do aluno
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//Solicita permissão de notificação (Android 13+)   //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+Future<void> solicitarPermissaoNotificacao() async {
+  if (await Permission.notification.isDenied) {
+    await Permission.notification.request();
+  }
+}
+
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//Configuração do Firebase Messaging                //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+Future<void> _configurarFirebaseMessaging() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final messaging = FirebaseMessaging.instance;
+
+  // Solicita permissão para notificação
+  await messaging.requestPermission();
+
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'high_importance_channel',
+    'Notificações Importantes',
+    description: 'Canal usado para notificações importantes.',
+    importance: Importance.high,
+  );
+
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  final token = await messaging.getToken();
+  if (token != null) {
+    // Passo 1: Exclui todos os tokens antigos
+    final tokensSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('fcmTokens')
+        .get();
+
+    for (var doc in tokensSnapshot.docs) {
+      await doc.reference.delete();  // Excluindo os tokens antigos
+    }
+
+    // Passo 2: Salva o novo token
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('fcmTokens')
+        .doc(token)  // Usando o novo token como ID de documento
+        .set({
+      'token': token,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // App em primeiro plano
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+
+    if (notification != null && android != null) {
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+      );
+    }
+
+    _getNotificacoes();
+  });
+
+  // App aberto pela notificação
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    _getNotificacoes();
+  });
+}
+
+
+
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //Recupera nome e ID do aluno                       //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getAlunoNameECpf() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -50,7 +165,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
             AlunoNome = nomeAluno;
             userId = user.uid;
           });
-          _getNotificacoes(); // Chama após obter userId
+          _getNotificacoes();
         }
       }
     } catch (e) {
@@ -58,7 +173,9 @@ class _PaginaInicialState extends State<PaginaInicial> {
     }
   }
 
-  // Função para carregar as notificações para o aluno
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //Carrega notificações recentes do Firestore        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getNotificacoes() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -66,7 +183,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
           .doc(userId)
           .collection('notificacoes')
           .orderBy('timestamp', descending: true)
-          .limit(3) // Limitar a 3 notificações
+          .limit(3)
           .get();
 
       final lista = snapshot.docs.map((doc) => doc.data()).toList();
@@ -78,7 +195,9 @@ class _PaginaInicialState extends State<PaginaInicial> {
     }
   }
 
-  // Função para excluir as notificações após visualização
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //Remove notificações após visualização             //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _limparNotificacoes() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -88,7 +207,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
           .get();
 
       for (var doc in snapshot.docs) {
-        await doc.reference.delete(); // Deletando as notificações
+        await doc.reference.delete();
       }
 
       setState(() {
@@ -99,9 +218,11 @@ class _PaginaInicialState extends State<PaginaInicial> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //Construção da interface                           //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
-    // Pegando as dimensões da tela
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
@@ -112,7 +233,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
         title: Text(
           'INFO+',
           style: GoogleFonts.roboto(
-            fontSize: screenWidth * 0.06, // Ajuste dinâmico de fonte
+            fontSize: screenWidth * 0.06,
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -123,10 +244,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
               signOutUser();
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const PaginaLogin()),
+                MaterialPageRoute(builder: (_) => const PaginaLogin()),
               );
             },
-            icon: Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded),
             color: Colors.white,
           ),
         ],
@@ -141,7 +262,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
               Text(
                 'Bem-vindo(a) de volta ${AlunoNome.isNotEmpty ? AlunoNome : ''}',
                 style: TextStyle(
-                  fontSize: screenWidth * 0.07, // Ajuste dinâmico de fonte
+                  fontSize: screenWidth * 0.07,
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
@@ -153,20 +274,15 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.black54,
-                      width: 1,
-                    ),
+                    border: Border.all(color: Colors.black54, width: 1),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Notificações recentes:",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      const Text("Notificações recentes:",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       SizedBox(height: screenHeight * 0.01),
-                      ...notificacoes.take(3).map((notificacao) {
+                      ...notificacoes.map((notificacao) {
                         return Padding(
                           padding: EdgeInsets.only(bottom: screenHeight * 0.01),
                           child: Text(
@@ -178,9 +294,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: MyButton(
-                          onTap: () async {
-                            await _limparNotificacoes(); // Limpar notificações após visualização
-                          },
+                          onTap: _limparNotificacoes,
                           text: 'OK',
                           icon: Icons.check,
                         ),
@@ -191,7 +305,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
               SizedBox(height: screenHeight * 0.02),
               Expanded(
                 child: ListView(
-                  physics: BouncingScrollPhysics(),
+                  physics: const BouncingScrollPhysics(),
                   children: [
                     Text(
                       'Selecione a opção desejada',
@@ -221,7 +335,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                           onTap: () {
                             FlutterWebBrowser.openWebPage(
                               url: 'https://ensino.araquari.ifc.edu.br/',
-                              customTabsOptions: CustomTabsOptions(
+                              customTabsOptions: const CustomTabsOptions(
                                 colorScheme: CustomTabsColorScheme.dark,
                                 toolbarColor: Colors.black,
                               ),
@@ -243,7 +357,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                             FlutterWebBrowser.openWebPage(
                               url:
                                   'https://ensino.ifc.edu.br/calendarios-academicos/',
-                              customTabsOptions: CustomTabsOptions(
+                              customTabsOptions: const CustomTabsOptions(
                                 colorScheme: CustomTabsColorScheme.dark,
                                 toolbarColor: Colors.black,
                               ),
@@ -258,7 +372,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                           onTap: () {
                             FlutterWebBrowser.openWebPage(
                               url: 'https://ifc.pergamum.com.br',
-                              customTabsOptions: CustomTabsOptions(
+                              customTabsOptions: const CustomTabsOptions(
                                 colorScheme: CustomTabsColorScheme.dark,
                                 toolbarColor: Colors.black,
                               ),
@@ -286,7 +400,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
         unselectedItemColor: Colors.white,
         selectedFontSize: 15,
         unselectedFontSize: 12,
-        items: [
+        items: const [
           BottomNavigationBarItem(
               icon: Icon(Icons.settings), label: 'Configuração'),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
