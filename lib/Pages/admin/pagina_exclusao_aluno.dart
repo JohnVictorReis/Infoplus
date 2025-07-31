@@ -1,5 +1,6 @@
-// ignore_for_file: avoid_print, unnecessary_to_list_in_spreads
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//                    Importações necessárias                  //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +8,9 @@ import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:projeto_infoplus/Pages/Components/botoes.dart';
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//                  Página de Exclusão de Alunos               //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaExclusaoAlunos extends StatefulWidget {
   const PaginaExclusaoAlunos({super.key});
 
@@ -15,21 +19,32 @@ class PaginaExclusaoAlunos extends StatefulWidget {
 }
 
 class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //               Variáveis de estado e controle local           //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   String? selectedTurma;
   List<String> turmas = [];
   List<Map<String, dynamic>> alunos = [];
   Map<String, bool> alunosSelecionados = {};
 
-  // SUBSTITUA ESTE ENDPOINT PELA SUA URL DE CLOUD FUNCTION
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //         Endpoint da Cloud Function de exclusão de usuários   //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   final String cloudFunctionUrl =
       'https://deletarusuario-m2qow4c2ja-uc.a.run.app';
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //       Inicialização: carregamento inicial das turmas        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   void initState() {
     super.initState();
     _getTurmas();
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //           Busca as turmas disponíveis no Firestore          //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getTurmas() async {
     try {
       QuerySnapshot snapshot =
@@ -42,6 +57,9 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //     Carrega os alunos de uma turma específica do Firestore  //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _carregarAlunosDaTurma(String turma) async {
     try {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
@@ -62,6 +80,9 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //   Chama a Cloud Function para remover o usuário do Auth     //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _excluirUsuarioPorHttp(String uid) async {
     try {
       final response = await http.post(
@@ -78,6 +99,9 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //           Exclui somente os alunos selecionados             //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _excluirSelecionados() async {
     final selecionados = alunosSelecionados.entries
         .where((e) => e.value)
@@ -102,6 +126,9 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //           Exclui todos os alunos da turma atual             //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _excluirTodos() async {
     if (alunos.isEmpty) return;
 
@@ -121,6 +148,9 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //                   Funções de exibição de SnackBars           //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   void _erroSnack(String msg) {
     Get.snackbar("Erro", msg,
         snackPosition: SnackPosition.BOTTOM,
@@ -135,6 +165,9 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
         colorText: Colors.white);
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //           Construção da interface da tela principal          //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,39 +192,49 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
                 const SizedBox(height: 10),
                 const Text("Selecione a turma", style: TextStyle(fontSize: 24)),
                 const SizedBox(height: 10),
+
+                //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+                //                   Dropdown de seleção de turma               //
+                //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
                 Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-  child: Container(
-    decoration: BoxDecoration(
-      color: Colors.grey[200],
-      border: Border.all(color: Colors.white),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.only(left: 20.0, right: 10.0),
-      child: DropdownButton<String>(
-        isExpanded: true,
-        value: selectedTurma,
-        hint: const Text("Selecione uma turma"),
-        underline: const SizedBox(), // remove linha inferior padrão
-        onChanged: (String? newValue) {
-          setState(() {
-            selectedTurma = newValue;
-          });
-          if (newValue != null) _carregarAlunosDaTurma(newValue);
-        },
-        items: turmas.map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-      ),
-    ),
-  ),
-),
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      border: Border.all(color: Colors.white),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20.0, right: 10.0),
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: selectedTurma,
+                        hint: const Text("Selecione uma turma"),
+                        underline: const SizedBox(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedTurma = newValue;
+                          });
+                          if (newValue != null) {
+                            _carregarAlunosDaTurma(newValue);
+                          }
+                        },
+                        items: turmas.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
 
                 const SizedBox(height: 20),
+
+                //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+                //             Lista de alunos com checkboxes                   //
+                //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
                 ...alunos.map((aluno) {
                   return CheckboxListTile(
                     title: Text(aluno['nome']),
@@ -203,7 +246,12 @@ class _PaginaExclusaoAlunosState extends State<PaginaExclusaoAlunos> {
                     },
                   );
                 }).toList(),
+
                 const SizedBox(height: 10),
+
+                //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+                //                     Botões de ação                            //
+                //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
                 MyButton(
                   text: "Excluir Selecionados",
                   icon: Icons.person_remove,

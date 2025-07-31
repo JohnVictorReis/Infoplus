@@ -1,8 +1,10 @@
 // ignore_for_file: avoid_print, unnecessary_string_escapes
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// IMPORTACOES NECESSARIAS PARA FUNCIONAMENTO DO CADASTRO   //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,35 +15,38 @@ import 'package:projeto_infoplus/Pages/admin/pagina_adm.dart';
 import 'package:projeto_infoplus/Pages/Components/botoes.dart';
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-final TextEditingController _nomeController = TextEditingController();
-final TextEditingController _codigoProfessorController =
-    TextEditingController();
-final TextEditingController _nomeMateriaController = TextEditingController();
+// CONTROLADORES PARA OS CAMPOS DO FORMULÁRIO MANUAL        //
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+final TextEditingController _nomeController = TextEditingController();
+final TextEditingController _codigoProfessorController = TextEditingController();
+final TextEditingController _nomeMateriaController = TextEditingController();
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// CLASSE PRINCIPAL DA PAGINA DE CADASTRO DE PROFESSORES     //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaCadastroProfessor extends StatefulWidget {
   const PaginaCadastroProfessor({super.key});
 
   @override
-  State<PaginaCadastroProfessor> createState() =>
-      _PaginaCadastroProfessorState();
+  State<PaginaCadastroProfessor> createState() => _PaginaCadastroProfessorState();
 }
 
 class _PaginaCadastroProfessorState extends State<PaginaCadastroProfessor> {
   List<String> turmas = [];
   List<String> selectedTurmas = [];
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // AO INICIAR, CARREGA AS TURMAS EXISTENTES NO FIRESTORE    //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   void initState() {
     super.initState();
     _getTurmas();
   }
 
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getTurmas() async {
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('turmas').get();
+      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('turmas').get();
       setState(() {
         turmas = snapshot.docs.map((doc) => doc.id).toList();
       });
@@ -49,13 +54,17 @@ class _PaginaCadastroProfessorState extends State<PaginaCadastroProfessor> {
       print("Erro ao buscar turmas: $e");
     }
   }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // GERA EMAIL PADRÃO DO PROFESSOR BASEADO NO NOME E CÓDIGO  //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   String _gerarEmail(String nome, String codigo) {
     String primeiroNome = nome.split(' ')[0].toLowerCase();
     return '$primeiroNome\_$codigo.professor@mail.com';
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // CADASTRO MANUAL DE PROFESSOR COM FIREBASE AUTH E FIRESTORE
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _cadastrarProfessorManual() async {
     String nome = _nomeController.text.trim();
@@ -65,21 +74,19 @@ class _PaginaCadastroProfessorState extends State<PaginaCadastroProfessor> {
     try {
       await _cadastrarProfessor(nome, codigo, materia);
 
-      // Exibe snackbar de sucesso
+      // Exibe snackbar de sucesso e limpa os campos
       Get.snackbar("Sucesso", "Professor cadastrado com sucesso!",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,
           duration: const Duration(seconds: 3));
 
-      // Limpa campos
       _nomeController.clear();
       _codigoProfessorController.clear();
       _nomeMateriaController.clear();
       selectedTurmas.clear();
       setState(() {});
 
-      // Redireciona após pequeno delay para exibir snackbar
       await Future.delayed(const Duration(seconds: 1));
       Get.offAll(() => const PaginaAdm());
     } catch (e) {
@@ -91,14 +98,12 @@ class _PaginaCadastroProfessorState extends State<PaginaCadastroProfessor> {
     }
   }
 
-  Future<void> _cadastrarProfessor(
-      String nome, String codigo, String materia) async {
+  Future<void> _cadastrarProfessor(String nome, String codigo, String materia) async {
     String email = _gerarEmail(nome, codigo);
     String senha = 'professor';
 
     try {
-      UserCredential cred =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
         password: senha,
       );
@@ -135,131 +140,64 @@ class _PaginaCadastroProfessorState extends State<PaginaCadastroProfessor> {
     }
   }
 
-Future<void> _importarCSV() async {
-  try {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result == null || result.files.isEmpty) {
-      throw Exception("Nenhum arquivo selecionado.");
-    }
-
-    final filePath = result.files.single.path;
-    if (filePath == null) throw Exception("Caminho do arquivo não encontrado.");
-
-    final fileBytes = await File(filePath).readAsBytes();
-
-    late String csvContent;
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // IMPORTAÇÃO DE PROFESSORES VIA ARQUIVO CSV               //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  Future<void> _importarCSV() async {
     try {
-      csvContent = const Utf8Decoder().convert(fileBytes);
-    } catch (_) {
-      csvContent = const Latin1Decoder().convert(fileBytes);
-    }
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      if (result == null || result.files.isEmpty) throw Exception("Nenhum arquivo selecionado.");
 
-    final rows = const CsvToListConverter(
-      fieldDelimiter: ';',
-      eol: '\n',
-      shouldParseNumbers: false,
-    ).convert(csvContent);
+      final filePath = result.files.single.path;
+      if (filePath == null) throw Exception("Caminho do arquivo não encontrado.");
 
-    final snapshot = await FirebaseFirestore.instance.collection('turmas').get();
-    final turmasExistentes = snapshot.docs.map((e) => e.id).toList();
-
-    List<String> erros = [];
-    int sucesso = 0;
-
-    for (int i = 1; i < rows.length; i++) {
-      final linha = rows[i];
-      if (linha.length < 4) continue;
-
-      final nome = linha[0].toString().trim();
-      final codigo = linha[1].toString().trim();
-      final novaMateria = linha[2].toString().trim();
-      final turmasRaw = linha[3].toString().trim();
-
-      final turmasLidas = turmasRaw
-          .split(',')
-          .map((t) => t.trim())
-          .where((t) => turmasExistentes.contains(t))
-          .toList();
-
-      if (turmasLidas.isEmpty) {
-        erros.add("Nenhuma turma válida para $nome");
-        continue;
+      final fileBytes = await File(filePath).readAsBytes();
+      late String csvContent;
+      try {
+        csvContent = const Utf8Decoder().convert(fileBytes);
+      } catch (_) {
+        csvContent = const Latin1Decoder().convert(fileBytes);
       }
 
-      final primeiroNome = nome.split(' ').first.toLowerCase();
-      final email = "${primeiroNome}_$codigo.professor@mail.com";
-      const senha = 'professor';
+      final rows = const CsvToListConverter(fieldDelimiter: ';', eol: '\n', shouldParseNumbers: false).convert(csvContent);
+      final snapshot = await FirebaseFirestore.instance.collection('turmas').get();
+      final turmasExistentes = snapshot.docs.map((e) => e.id).toList();
 
-      try {
-        // Tentativa de criação do usuário
-        final cred = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(email: email, password: senha);
-        final uid = cred.user!.uid;
+      List<String> erros = [];
+      int sucesso = 0;
 
-        // Cadastro do novo professor
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'nome': nome,
-          'codigoProfessor': codigo,
-          'turmas': turmasLidas,
-          'role': 'professor',
-          'email': email,
-          'materia': [novaMateria],
-          'primeiro_login': true,
-        });
+      for (int i = 1; i < rows.length; i++) {
+        final linha = rows[i];
+        if (linha.length < 4) continue;
 
-        // Criação da matéria nas turmas
-        for (String turmaId in turmasLidas) {
-          await FirebaseFirestore.instance
-              .collection('turmas')
-              .doc(turmaId)
-              .collection('materias')
-              .doc(novaMateria)
-              .set({
-            'email': email,
-            'nome': novaMateria,
-            'professor': nome,
-          });
+        final nome = linha[0].toString().trim();
+        final codigo = linha[1].toString().trim();
+        final novaMateria = linha[2].toString().trim();
+        final turmasRaw = linha[3].toString().trim();
+
+        final turmasLidas = turmasRaw.split(',').map((t) => t.trim()).where((t) => turmasExistentes.contains(t)).toList();
+        if (turmasLidas.isEmpty) {
+          erros.add("Nenhuma turma válida para $nome");
+          continue;
         }
 
-        sucesso++;
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
-          // Atualiza professor existente
-          final userSnapshot = await FirebaseFirestore.instance
-              .collection('users')
-              .where('email', isEqualTo: email)
-              .limit(1)
-              .get();
+        final email = "${nome.split(' ').first.toLowerCase()}_$codigo.professor@mail.com";
+        const senha = 'professor';
 
-          if (userSnapshot.docs.isEmpty) {
-            erros.add("Usuário $email não encontrado no Firestore.");
-            continue;
-          }
+        try {
+          final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: senha);
+          final uid = cred.user!.uid;
 
-          final userDoc = userSnapshot.docs.first;
-          final userData = userDoc.data();
-          final uid = userDoc.id;
-
-          // Atualiza matérias
-          final materiasAtuais = userData['materia'] is List
-              ? List<String>.from(userData['materia'])
-              : [userData['materia'].toString()];
-          if (!materiasAtuais.contains(novaMateria)) {
-            materiasAtuais.add(novaMateria);
-          }
-
-          // Atualiza turmas
-          final turmasAtuais = userData['turmas'] is List
-              ? List<String>.from(userData['turmas'])
-              : [userData['turmas'].toString()];
-          final novasTurmas = {...turmasAtuais, ...turmasLidas}.toList();
-
-          await FirebaseFirestore.instance.collection('users').doc(uid).update({
-            'materia': materiasAtuais,
-            'turmas': novasTurmas,
+          await FirebaseFirestore.instance.collection('users').doc(uid).set({
+            'nome': nome,
+            'codigoProfessor': codigo,
+            'turmas': turmasLidas,
+            'role': 'professor',
+            'email': email,
+            'materia': [novaMateria],
+            'primeiro_login': true,
           });
 
-          // Criação da nova matéria nas turmas
           for (String turmaId in turmasLidas) {
             await FirebaseFirestore.instance
                 .collection('turmas')
@@ -274,40 +212,78 @@ Future<void> _importarCSV() async {
           }
 
           sucesso++;
-        } else {
-          erros.add("Erro ao cadastrar $email: ${e.message}");
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'email-already-in-use') {
+            final userSnapshot = await FirebaseFirestore.instance
+                .collection('users')
+                .where('email', isEqualTo: email)
+                .limit(1)
+                .get();
+
+            if (userSnapshot.docs.isEmpty) {
+              erros.add("Usuário $email não encontrado no Firestore.");
+              continue;
+            }
+
+            final userDoc = userSnapshot.docs.first;
+            final userData = userDoc.data();
+            final uid = userDoc.id;
+
+            final materiasAtuais = userData['materia'] is List ? List<String>.from(userData['materia']) : [userData['materia'].toString()];
+            if (!materiasAtuais.contains(novaMateria)) materiasAtuais.add(novaMateria);
+
+            final turmasAtuais = userData['turmas'] is List ? List<String>.from(userData['turmas']) : [userData['turmas'].toString()];
+            final novasTurmas = {...turmasAtuais, ...turmasLidas}.toList();
+
+            await FirebaseFirestore.instance.collection('users').doc(uid).update({
+              'materia': materiasAtuais,
+              'turmas': novasTurmas,
+            });
+
+            for (String turmaId in turmasLidas) {
+              await FirebaseFirestore.instance
+                  .collection('turmas')
+                  .doc(turmaId)
+                  .collection('materias')
+                  .doc(novaMateria)
+                  .set({
+                'email': email,
+                'nome': novaMateria,
+                'professor': nome,
+              });
+            }
+
+            sucesso++;
+          } else {
+            erros.add("Erro ao cadastrar $email: ${e.message}");
+          }
+        } catch (e) {
+          erros.add("Erro inesperado com $nome: $e");
         }
-      } catch (e) {
-        erros.add("Erro inesperado com $nome: $e");
       }
-    }
 
-    String msg = "$sucesso professor(es) cadastrados/atualizados.";
-    if (erros.isNotEmpty) {
-      msg += "\n\nErros:\n${erros.join('\n')}";
-    }
+      String msg = "$sucesso professor(es) cadastrados/atualizados.";
+      if (erros.isNotEmpty) msg += "\n\nErros:\n${erros.join('\n')}";
 
-    Get.snackbar("Importação Finalizada", msg,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 10));
-  } catch (e) {
-    print("Erro ao importar CSV: $e");
-    Get.snackbar("Erro", "Falha ao importar CSV",
-        backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Importação Finalizada", msg,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 10));
+    } catch (e) {
+      print("Erro ao importar CSV: $e");
+      Get.snackbar("Erro", "Falha ao importar CSV",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
-}
 
   //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-
+  // CONSTRUÇÃO DA INTERFACE COM CAMPOS E BOTOES DE AÇÃO       //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Cadastro de Professor",
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text("Cadastro de Professor", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         centerTitle: true,
         leading: IconButton(
@@ -324,8 +300,7 @@ Future<void> _importarCSV() async {
               const SizedBox(height: 30),
               const Icon(Icons.school_rounded, size: 40),
               const SizedBox(height: 20),
-              const Text('Informações do Professor',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26)),
+              const Text('Informações do Professor', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26)),
               const SizedBox(height: 30),
               _inputField(_nomeController, 'Nome do Professor'),
               _inputField(_codigoProfessorController, 'Código do Professor'),
@@ -335,13 +310,7 @@ Future<void> _importarCSV() async {
                 alignment: Alignment.centerLeft,
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Text(
-                    'Informe uma turma para o professor:',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'RobotoMono'),
-                  ),
+                  child: Text('Informe uma turma para o professor:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'RobotoMono')),
                 ),
               ),
               Padding(
@@ -375,13 +344,7 @@ Future<void> _importarCSV() async {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'ou',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'RobotoMono',
-                ),
-              ),
+              const Text('ou', style: TextStyle(fontSize: 16, fontFamily: 'RobotoMono')),
               const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -398,6 +361,9 @@ Future<void> _importarCSV() async {
     );
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // CAMPO DE TEXTO PADRÃO PARA NOME, CÓDIGO E MATÉRIA         //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Widget _inputField(TextEditingController controller, String hintText) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 6),
@@ -421,4 +387,3 @@ Future<void> _importarCSV() async {
     );
   }
 }
-

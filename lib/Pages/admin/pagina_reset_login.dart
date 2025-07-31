@@ -1,8 +1,14 @@
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//         Importações necessárias para o funcionamento         //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:projeto_infoplus/Pages/Components/botoes.dart'; // ajuste o path se necessário
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//             Tela de Reset de Senhas de Usuários             //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaResetSenhas extends StatefulWidget {
   const PaginaResetSenhas({super.key});
 
@@ -11,12 +17,17 @@ class PaginaResetSenhas extends StatefulWidget {
 }
 
 class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //                 Controladores e variáveis locais             //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
   String? _mensagem;
   List<String> _sugestoes = [];
 
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Busca sugestões de e-mails com base na digitação do usuário //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   void _buscarSugestoes(String input) async {
     if (input.trim().length < 3) {
       setState(() => _sugestoes = []);
@@ -40,7 +51,9 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
     });
   }
 
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //         Reset de senha de um único usuário via Firestore     //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> resetarSenhaDoUsuario() async {
     setState(() {
       _isLoading = true;
@@ -86,9 +99,8 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
         snackPosition: SnackPosition.BOTTOM,
       );
 
-      // Aguarda brevemente para o snackbar ser visível, então volta
       await Future.delayed(const Duration(milliseconds: 700));
-      Navigator.pop(context);
+      Navigator.pop(context); // Fecha a tela após sucesso
     } catch (e) {
       Get.snackbar("Erro", "Erro ao tentar resetar: $e",
           backgroundColor: Colors.redAccent,
@@ -99,7 +111,9 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
     }
   }
 
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //    Reset de senha para todos os usuários do Firestore       //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> resetarTodosUsuarios({required String text}) async {
     try {
       final snapshot =
@@ -127,6 +141,9 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //       Exibe lista de sugestões de e-mails encontrados        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Widget _buildSugestoes() {
     if (_sugestoes.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -144,12 +161,18 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
     );
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //               Libera recursos ao destruir a tela            //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //     Mostra alerta de confirmação antes do reset global      //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<bool> _confirmarResetGlobal() async {
     return await showDialog<bool>(
           context: context,
@@ -172,7 +195,9 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
         false;
   }
 
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //            Construção visual da interface da tela           //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,6 +251,9 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
                   ? const CircularProgressIndicator()
                   : Column(
                       children: [
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
+                        //   Botão para resetar a senha de um usuário apenas   //
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
                         MyButton(
                           onTap: resetarSenhaDoUsuario,
                           text: 'Resetar Senha',
@@ -240,6 +268,9 @@ class _PaginaResetSenhasState extends State<PaginaResetSenhas> {
                           ),
                         ),
                         const SizedBox(height: 15),
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
+                        //   Botão para resetar a senha de todos os usuários   //
+                        //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
                         MyButton(
                           onTap: () async {
                             final confirmado = await _confirmarResetGlobal();
