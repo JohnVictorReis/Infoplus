@@ -1,3 +1,6 @@
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//               Importações necessárias            //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +10,9 @@ import 'package:projeto_infoplus/Pages/usuario/pagina_inicial.dart';
 import 'package:projeto_infoplus/Pages/professor/pagina_inicial_professor.dart';
 import 'package:projeto_infoplus/Pages/geral/pagina_login.dart';
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//       Tela de troca de senha no primeiro login   //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaTrocaSenha extends StatefulWidget {
   const PaginaTrocaSenha({super.key});
 
@@ -14,17 +20,23 @@ class PaginaTrocaSenha extends StatefulWidget {
   State<PaginaTrocaSenha> createState() => _PaginaTrocaSenhaState();
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+//   Controladores de texto, verificação e lógica   //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
   final TextEditingController _novaSenhaController = TextEditingController();
-  final TextEditingController _confirmarSenhaController =
-      TextEditingController();
+  final TextEditingController _confirmarSenhaController = TextEditingController();
   bool _isLoading = false;
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //      Função para alterar a senha do usuário     //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _alterarSenha() async {
     final user = FirebaseAuth.instance.currentUser;
     final novaSenha = _novaSenhaController.text.trim();
     final confirmarSenha = _confirmarSenhaController.text.trim();
 
+    // Verifica se as senhas coincidem
     if (novaSenha != confirmarSenha) {
       Get.snackbar("Erro", "As senhas não coincidem.",
           snackPosition: SnackPosition.BOTTOM,
@@ -33,6 +45,7 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
       return;
     }
 
+    // Verifica o tamanho mínimo da senha
     if (novaSenha.length < 6) {
       Get.snackbar("Erro", "A senha deve ter no mínimo 6 caracteres.",
           snackPosition: SnackPosition.BOTTOM,
@@ -44,24 +57,28 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
     try {
       setState(() => _isLoading = true);
 
+      // Atualiza a senha no Firebase Authentication
       await user!.updatePassword(novaSenha);
 
       // Atualiza o campo 'primeiro_login' no Firestore
-      final docRef =
-          FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
       await docRef.update({'primeiro_login': false});
 
-      // Obtém os dados do usuário
+      // Obtém os dados do usuário para redirecionamento
       final doc = await docRef.get();
       final role = doc['role'];
       final turma = doc.data()?['turma'] ?? '';
 
+      // Exibe mensagem de sucesso
       Get.snackbar("Sucesso", "Senha alterada com sucesso!",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white);
+
+      // Aguarda brevemente antes de redirecionar
       await Future.delayed(const Duration(seconds: 1));
-      // Redirecionamento com base na role
+
+      // Redireciona conforme o tipo de usuário
       if (role == 'usuario') {
         Get.offAll(() => const PaginaInicial());
       } else if (role == 'professor') {
@@ -70,6 +87,7 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
         Get.offAll(() => const PaginaLogin());
       }
     } catch (e) {
+      // Em caso de erro na alteração
       Get.snackbar("Erro", "Não foi possível alterar a senha.",
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.redAccent,
@@ -79,6 +97,9 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //        Libera os controladores da memória        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   void dispose() {
     _novaSenhaController.dispose();
@@ -86,6 +107,9 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
     super.dispose();
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  //             Interface da tela de troca de senha  //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -103,6 +127,8 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
         child: Column(
           children: [
             const SizedBox(height: 30),
+
+            // Campo para digitar nova senha
             TextField(
               cursorColor: Colors.black,
               controller: _novaSenhaController,
@@ -121,11 +147,13 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 filled: true,
-                fillColor: Colors
-                    .transparent, // This keeps the label background normal
+                fillColor: Colors.transparent,
               ),
             ),
+
             const SizedBox(height: 20),
+
+            // Campo para confirmar nova senha
             TextField(
               cursorColor: Colors.black,
               controller: _confirmarSenhaController,
@@ -144,11 +172,13 @@ class _PaginaTrocaSenhaState extends State<PaginaTrocaSenha> {
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 filled: true,
-                fillColor: Colors
-                    .transparent, // This keeps the label background normal
+                fillColor: Colors.transparent,
               ),
             ),
+
             const SizedBox(height: 30),
+
+            // Botão para alterar a senha
             MyButton(
               text: _isLoading ? "" : "Alterar Senha",
               icon: Icons.lock_reset,
