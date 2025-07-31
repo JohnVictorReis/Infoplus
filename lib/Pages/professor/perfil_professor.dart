@@ -1,10 +1,16 @@
 // ignore_for_file: avoid_print
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Importações necessárias                          //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:projeto_infoplus/Pages/Components/caixa_texto.dart';
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Tela de Perfil do Professor                      //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PerfilProfessor extends StatefulWidget {
   const PerfilProfessor({super.key});
 
@@ -13,7 +19,9 @@ class PerfilProfessor extends StatefulWidget {
 }
 
 class _PerfilProfessorState extends State<PerfilProfessor> {
-  // Pegando o usuário atual
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Variáveis de estado                             //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   User? userAtual = FirebaseAuth.instance.currentUser;
   String nomeProfessor = '';
   String emailProfessor = '';
@@ -28,17 +36,17 @@ class _PerfilProfessorState extends State<PerfilProfessor> {
     _getProfessorInfo(); // Carrega as informações do professor logado
   }
 
-  // Função para pegar as informações do professor logado
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Recupera as informações do professor logado      //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getProfessorInfo() async {
     try {
       if (userAtual != null) {
-        // Obtendo dados do Firestore com base no UID do usuário
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(userAtual!.uid)
             .get();
 
-        // Se o documento do usuário existir, atualiza os dados na tela
         if (userDoc.exists) {
           setState(() {
             nomeProfessor = userDoc['nome'] ?? 'Nome não encontrado';
@@ -48,13 +56,10 @@ class _PerfilProfessorState extends State<PerfilProfessor> {
             codigoProfessor =
                 userDoc['codigoProfessor'] ?? 'Código não encontrado';
 
-            // Garantir que o campo 'turmas' seja uma lista
             var turmasData = userDoc['turmas'];
             turmasProfessor = (turmasData is List)
                 ? List<String>.from(turmasData)
-                : [
-                    turmasData ?? 'Sem turmas'
-                  ]; // Caso seja uma string, converte para lista
+                : [turmasData ?? 'Sem turmas'];
           });
         }
       }
@@ -63,6 +68,9 @@ class _PerfilProfessorState extends State<PerfilProfessor> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Interface da tela                                //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,7 +89,10 @@ class _PerfilProfessorState extends State<PerfilProfessor> {
         padding: const EdgeInsets.all(20.0),
         children: [
           const SizedBox(height: 25),
-          // Ícone de foto de usuário
+
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          // Ícone do professor                               //
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
           Center(
             child: Icon(
               Icons.person,
@@ -90,11 +101,11 @@ class _PerfilProfessorState extends State<PerfilProfessor> {
             ),
           ),
 
-          const SizedBox(
-              height:
-                  30), // Adicionado espaçamento maior entre o ícone e as informações
+          const SizedBox(height: 30),
 
-          // Exibindo o nome do professor
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          // Nome do professor                                //
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
             child: Text(
@@ -103,73 +114,10 @@ class _PerfilProfessorState extends State<PerfilProfessor> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
-/*
-          // Exibindo o email do professor
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Text(
-              emailProfessor.isNotEmpty
-                  ? emailProfessor
-                  : 'Email não encontrado',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[700]),
-            ),
-          ),
 
-          // Exibindo a matéria que o professor leciona
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Text(
-              'Matéria: $materiaProfessor',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[800],
-              ),
-            ),
-          ),
-
-          // Exibindo o código do professor
-          Padding(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: Text(
-              'Código: $codigoProfessor',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[800],
-              ),
-            ),
-          ),
-
-          // Detalhes do professor / Exibição das turmas
-          Padding(
-            padding: const EdgeInsets.only(left: 25),
-            child: Text(
-              'Turmas que leciona:',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-
-          // Exibindo as turmas que o professor leciona
-          for (var turma in turmasProfessor)
-            Padding(
-              padding: const EdgeInsets.only(left: 25),
-              child: Text(
-                turma,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[700],
-                ),
-              ),
-            ),
-*/
-
-          // CaixaTexto com as informações do professor como lista
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          // Caixa com os dados do professor                  //
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
           CaixaTexto(
             nomeSessao: 'Dados do Professor',
             texto: '''
@@ -181,7 +129,7 @@ Código: $codigoProfessor
 Turmas: ${turmasProfessor.join(', ')}
             ''',
             onPressed: () {
-              // Ação ao pressionar a caixa de texto (se necessário)
+              // Ação ao clicar (se necessário)
             },
           ),
         ],

@@ -1,5 +1,8 @@
 // ignore_for_file: avoid_print, deprecated_member_use
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Importações necessárias                          //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +17,11 @@ import 'package:projeto_infoplus/Services/auth_service.dart';
 import 'package:projeto_infoplus/Pages/geral/auth_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:projeto_infoplus/Services/url_launcher.dart';
-import 'package:flutter_web_browser/flutter_web_browser.dart'; // Importando o flutter_web_browser
+import 'package:flutter_web_browser/flutter_web_browser.dart';
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Página inicial do professor                       //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaInicialProfessor extends StatefulWidget {
   const PaginaInicialProfessor({super.key, required List<String> turmas});
 
@@ -25,7 +31,7 @@ class PaginaInicialProfessor extends StatefulWidget {
 
 class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
   int _currentIndex = 1;
-  String professorNome = ''; // Variável para armazenar o nome do professor
+  String professorNome = '';
 
   final tabs = [
     Center(child: Text('Sair')),
@@ -33,44 +39,48 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
     Center(child: Text('Perfil')),
   ];
 
-  // Método do Firebase para Logoff
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Logout do Firebase                               //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   void signOutUser() {
     FirebaseAuth.instance.signOut();
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Inicialização da tela                            //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   void initState() {
     super.initState();
-    _getProfessorName(); // Chama a função para buscar o nome do professor
+    _getProfessorName();
   }
 
-// Função para buscar o nome do professor logado
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Buscar nome do professor com base no e-mail       //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getProfessorName() async {
     try {
-      // Obtém o e-mail do usuário logado
       final String professorEmail = FirebaseAuth.instance.currentUser!.email!;
-
-      // Extraí o nome do professor do e-mail, pegando apenas a parte antes do primeiro ponto
-      String nomeProfessor =
-          professorEmail.split('.')[0]; // Pega a parte antes do ponto
-
-      // Capitaliza a primeira letra do nome
-      nomeProfessor =
-          nomeProfessor[0].toUpperCase() + nomeProfessor.substring(1);
+      String nomeProfessor = professorEmail.split('.')[0];
+      nomeProfessor = nomeProfessor[0].toUpperCase() + nomeProfessor.substring(1);
 
       setState(() {
-        professorNome =
-            nomeProfessor; // Atualiza a variável com o nome extraído
+        professorNome = nomeProfessor;
       });
     } catch (e) {
       print("Erro ao recuperar nome do professor: $e");
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Interface principal da tela                       //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
+
+      // AppBar superior com título e botão de logout
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: Text(
@@ -87,9 +97,7 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
               signOutUser();
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const PaginaLogin(),
-                ),
+                MaterialPageRoute(builder: (context) => const PaginaLogin()),
               );
             },
             icon: Icon(Icons.logout_rounded),
@@ -97,20 +105,22 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
           ),
         ],
       ),
+
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+      // Conteúdo principal da página                      //
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
       body: SafeArea(
         child: Container(
           margin: const EdgeInsets.only(top: 18, left: 24, right: 24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Mensagem de boas-vindas com o nome do professor
+              // Mensagem de boas-vindas
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Bem-vindo(a) de volta professor(a) ',
-                    /*${professorNome.isNotEmpty ? professorNome : ''}',*/
+                    'Bem-vindo(a) de volta professor(a)',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.black,
@@ -119,6 +129,8 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
                   ),
                 ],
               ),
+
+              // Lista de opções
               Expanded(
                 child: ListView(
                   physics: const BouncingScrollPhysics(),
@@ -131,6 +143,8 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
                       ),
                     ),
                     const SizedBox(height: 16),
+
+                    // Primeira linha de botões
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -138,77 +152,53 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const PaginaNotaProfessor(),
-                              ),
+                              MaterialPageRoute(builder: (context) => const PaginaNotaProfessor()),
                             );
                           },
                           icon: 'assets/images/notas.png',
                           title: 'NOTAS',
-                          //color: Color.fromRGBO(33, 33, 33, 1),
                           color: Colors.black,
                           fontColor: Colors.white,
                         ),
                         _cardMenu(
                           onTap: () {
-                            // Atualizando para usar o flutter_web_browser
                             FlutterWebBrowser.openWebPage(
-                              url:
-                                  'https://ensino.araquari.ifc.edu.br/?_gl=1*uz1tfz*_ga*NzYzNTM0NTkxLjE3NDU2MTI2MTI.*_ga_SCB6Z3PWKN*MTc0NTYxMjYxMi4xLjAuMTc0NTYxMjYxMi42MC4wLjA.', // URL a ser aberta
+                              url: 'https://ensino.araquari.ifc.edu.br/?_gl=1*uz1tfz*_ga*NzYzNTM0NTkxLjE3NDU2MTI2MTI.*_ga_SCB6Z3PWKN*MTc0NTYxMjYxMi4xLjAuMTc0NTYxMjYxMi42MC4wLjA.',
                               customTabsOptions: CustomTabsOptions(
                                 colorScheme: CustomTabsColorScheme.dark,
-                                toolbarColor:
-                                    Colors.black, // Cor da barra de ferramentas
+                                toolbarColor: Colors.black,
                               ),
                             );
                           },
                           icon: 'assets/images/noticias.png',
-                          title: 'NOTICIAS',
-                          //color: Color.fromRGBO(33, 33, 33, 1),
+                          title: 'NOTÍCIAS',
                           color: Colors.black,
                           fontColor: Colors.white,
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 28),
+
+                    // Segunda linha de botões
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _cardMenu(
                           onTap: () {
-                            // Atualizando para usar o flutter_web_browser
                             FlutterWebBrowser.openWebPage(
-                              url:
-                                  'https://ensino.ifc.edu.br/calendarios-academicos/', // URL a ser aberta
+                              url: 'https://ensino.ifc.edu.br/calendarios-academicos/',
                               customTabsOptions: CustomTabsOptions(
                                 colorScheme: CustomTabsColorScheme.dark,
-                                toolbarColor:
-                                    Colors.black, // Cor da barra de ferramentas
+                                toolbarColor: Colors.black,
                               ),
                             );
                           },
                           icon: 'assets/images/calendario.png',
                           title: 'CALENDÁRIO',
-                          //color: const Color.fromRGBO(33, 33, 33, 1),
                           color: Colors.black,
                           fontColor: Colors.white,
                         ),
-                        /*_cardMenu(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const PaginaLogin(),
-                              ),
-                            );
-                          },
-                          icon: 'assets/images/noticias.png',
-                          title: 'SAIR',
-                          //color: Color.fromRGBO(33, 33, 33, 1),
-                          color: Colors.black,
-                          fontColor: Colors.white,
-                        ),*/
                       ],
                     ),
                   ],
@@ -218,6 +208,10 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
           ),
         ),
       ),
+
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+      // Barra de navegação inferior                       //
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
@@ -226,19 +220,16 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
         unselectedItemColor: Colors.white,
         selectedFontSize: 15,
         unselectedFontSize: 12,
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Configuração'),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuração'),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_rounded),
-            label: 'Perfil',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.account_circle_rounded), label: 'Perfil'),
         ],
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
+
           if (_currentIndex == 2) {
             Navigator.pushNamed(context, '/home/professor');
           }
@@ -247,7 +238,9 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
     );
   }
 
-  // Widget do CardMenu
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Card de menu reutilizável                         //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Widget _cardMenu({
     required String title,
     required String icon,
@@ -270,7 +263,10 @@ class _PaginaInicialProfessorState extends State<PaginaInicialProfessor> {
             const SizedBox(height: 2),
             Text(
               title,
-              style: TextStyle(fontWeight: FontWeight.bold, color: fontColor),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: fontColor,
+              ),
             )
           ],
         ),

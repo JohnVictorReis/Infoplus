@@ -1,5 +1,8 @@
 // ignore_for_file: unused_import
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Importações necessárias                          //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +18,9 @@ import 'package:projeto_infoplus/Pages/geral/auth_page.dart';
 import 'package:projeto_infoplus/Pages/usuario/mostra_csv.dart';
 import 'package:projeto_infoplus/Pages/professor/perfil_professor.dart';
 
-//teste pra rodar a pagina iniciar com statefull e adicionar o menu de baixo
-
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Página principal de notas do professor            //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaNotaProfessor extends StatefulWidget {
   const PaginaNotaProfessor({super.key});
 
@@ -25,37 +29,35 @@ class PaginaNotaProfessor extends StatefulWidget {
 }
 
 class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
-  // ignore: prefer_final_fields
   int _currentIndex = 1;
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Tabs (não utilizadas diretamente no body)         //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   final tabs = [
-    Center(
-      child: Text('Sair'),
-    ),
-    Center(
-      child: Text('Home'),
-    ),
-    Center(
-      child: Text('Perfil'),
-    ),
+    Center(child: Text('Sair')),
+    Center(child: Text('Home')),
+    Center(child: Text('Perfil')),
   ];
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
-//Metodo do Firebase para Logoff//
-
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Método para fazer logout do Firebase             //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   void signOutUser() {
     FirebaseAuth.instance.signOut();
   }
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Construção do widget principal                   //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
+
+      // AppBar superior com botão de logout
       appBar: AppBar(
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.black,
         title: Text(
           'INFO+',
@@ -71,9 +73,7 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
               signOutUser();
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const PaginaLogin(),
-                ),
+                MaterialPageRoute(builder: (context) => const PaginaLogin()),
               );
             },
             icon: Icon(Icons.logout_rounded),
@@ -81,127 +81,124 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
           ),
         ],
       ),
+
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+      // Conteúdo da tela                                 //
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
       body: SafeArea(
         child: Container(
-            margin: const EdgeInsets.only(top: 18, left: 24, right: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text(
-                      'Selecione a opção desejada',
-                      style: TextStyle(
-                        fontSize: 25,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
+          margin: const EdgeInsets.only(top: 18, left: 24, right: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text(
+                    'Selecione a opção desejada',
+                    style: TextStyle(
+                      fontSize: 25,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                ],
+              ),
+
+              // Cards com botões
+              Expanded(
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _cardMenu(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PaginaCadastroCSV()),
+                            );
+                          },
+                          icon: 'assets/images/notas.png',
+                          title: 'CADASTRAR',
+                          color: Colors.black,
+                          fontColor: Colors.white,
+                        ),
+                        _cardMenu(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PaginaMostragemCSV()),
+                            );
+                          },
+                          icon: 'assets/images/noticias.png',
+                          title: 'VIZUALIZAR',
+                          color: Colors.black,
+                          fontColor: Colors.white,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
                   ],
                 ),
-                Expanded(
-                  child: ListView(
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _cardMenu(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const PaginaCadastroCSV(),
-                                ),
-                              );
-                            },
-                            icon: 'assets/images/notas.png',
-                            title: 'CADASTRAR',
-                            color: Colors.black,
-                            fontColor: Colors.white,
-                          ),
-                          _cardMenu(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const PaginaMostragemCSV(),
-                                ),
-                              );
-                            },
-                            icon: 'assets/images/noticias.png',
-                            title: 'VIZUALIZAR',
-                            color: Colors.black,
-                            fontColor: Colors.white,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 28),
-                    ],
-                  ),
-                ),
-              ],
-            )),
+              ),
+            ],
+          ),
+        ),
       ),
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-//Daqui pra baixo é o botton navigation bar funcional//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+      // Barra de navegação inferior                      //
+      //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
       bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.black,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white,
-          selectedFontSize: 15,
-          unselectedFontSize: 12,
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.settings), label: 'Configuração'),
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle_rounded),
-              label: 'Perfil',
-            ),
-          ],
-          onTap: (index) async {
-            setState(() {
-              _currentIndex = index;
-            });
-            if (_currentIndex == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PerfilProfessor(),
-                ),
-              );
-            } else if (_currentIndex == 0) {
-              // Add your configuration navigation here if needed
-            } else if (_currentIndex == 1) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PaginaInicialProfessor(
-                    turmas: [],
-                  ),
-                ),
-              );
-            }
-          }),
-    );
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+        currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.black,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white,
+        selectedFontSize: 15,
+        unselectedFontSize: 12,
+        items: [
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Configuração'),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle_rounded), label: 'Perfil'),
+        ],
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
 
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
-//Aqui estamos definindo o widget _cardMenu, com todos os requires necessários, juntamente com as configurações do onTap//
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          if (_currentIndex == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PerfilProfessor()),
+            );
+          } else if (_currentIndex == 0) {
+            // Página de configurações (não implementada)
+          } else if (_currentIndex == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => PaginaInicialProfessor(turmas: [])),
+            );
+          }
+        },
+      ),
+    );
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Widget personalizado de botão em forma de card    //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Widget _cardMenu({
     required String title,
     required String icon,
@@ -212,9 +209,7 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 36,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 36),
         width: 156,
         decoration: BoxDecoration(
           color: color,
@@ -226,12 +221,14 @@ class _PaginaNotaProfessorState extends State<PaginaNotaProfessor> {
             const SizedBox(height: 2),
             Text(
               title,
-              style: TextStyle(fontWeight: FontWeight.bold, color: fontColor),
-            )
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: fontColor,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 }

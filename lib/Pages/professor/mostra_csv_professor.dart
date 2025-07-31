@@ -25,7 +25,9 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
     _getTurmasProfessor(); // Buscar as turmas do professor
   }
 
-  // Função para obter as turmas associadas ao professor
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Função para obter as turmas associadas ao professor          //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getTurmasProfessor() async {
     try {
       final String professorEmail = FirebaseAuth.instance.currentUser!.email!;
@@ -47,7 +49,9 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
     }
   }
 
-  // Função para atualizar as matérias com base na turma e professor logado
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Atualiza as matérias com base na turma selecionada            //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _updateMaterias(String turma) async {
     materias = []; // Limpar a lista de matérias
     try {
@@ -60,7 +64,7 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
 
       for (var doc in materiasSnapshot.docs) {
         setState(() {
-          materias.add(doc['nome']); // Adiciona as matérias à lista
+          materias.add(doc['nome']);
         });
       }
     } catch (e) {
@@ -68,7 +72,9 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
     }
   }
 
-  // Função para carregar as notas com base na turma e matéria selecionada
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Carrega notas com base na turma e matéria selecionadas        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _loadNotas() async {
     try {
       if (selectedTurma == null || selectedMateria == null) {
@@ -84,15 +90,17 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
             .collection('materias')
             .doc(selectedMateria)
             .collection('notas')
-            .orderBy('aluno') // Ordena as notas por aluno
-            .snapshots(); // Atribui o stream corretamente
+            .orderBy('aluno')
+            .snapshots();
       });
     } catch (e) {
       print("Erro ao carregar notas: $e");
     }
   }
 
-  // Função para excluir dados do Firestore
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Função para excluir uma nota                                //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _deleteData(String documentId) async {
     try {
       await FirebaseFirestore.instance
@@ -103,6 +111,7 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
           .collection('notas')
           .doc(documentId)
           .delete();
+
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Nota excluída com sucesso!")));
     } catch (e) {
@@ -111,7 +120,9 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
     }
   }
 
-  // Função para confirmar a exclusão
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Diálogo de confirmação de exclusão                          //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   void _confirmDelete(String documentId) {
     showDialog(
       context: context,
@@ -122,14 +133,14 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o dialog
+                Navigator.of(context).pop();
               },
               child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Fecha o dialog
-                _deleteData(documentId); // Chama a função de exclusão
+                Navigator.of(context).pop();
+                _deleteData(documentId);
               },
               child: Text('Excluir'),
             ),
@@ -139,6 +150,9 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
     );
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Interface principal                                         //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -147,14 +161,13 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Dropdown para selecionar a turma (somente as turmas associadas ao professor)
             DropdownButton<String>(
               value: selectedTurma,
               hint: Text("Selecione uma turma"),
               onChanged: (String? newValue) {
                 setState(() {
                   selectedTurma = newValue;
-                  // Atualiza as matérias disponíveis com base na turma selecionada
+                  selectedMateria = null; // Resetar ao mudar turma
                   _updateMaterias(selectedTurma!);
                 });
               },
@@ -166,8 +179,6 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
               }).toList(),
             ),
             SizedBox(height: 20),
-
-            // Dropdown para selecionar a matéria (baseado nas matérias do professor)
             DropdownButton<String>(
               value: selectedMateria,
               hint: Text("Selecione uma matéria"),
@@ -184,8 +195,6 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
               }).toList(),
             ),
             SizedBox(height: 20),
-
-            // Botão para carregar as notas
             MyButton(
               onTap: () async {
                 await _loadNotas();
@@ -194,8 +203,6 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
               icon: Icons.file_upload,
             ),
             SizedBox(height: 20),
-
-            // Exibe os dados carregados do Firestore em uma DataTable com bordas nas células
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: _dadosStream,
@@ -215,15 +222,11 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
                   var docs = snapshot.data!.docs;
 
                   return SingleChildScrollView(
-                    // Permite rolar as linhas
-                    scrollDirection:
-                        Axis.horizontal, // Habilita o scroll horizontal
+                    scrollDirection: Axis.horizontal,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(
-                            color: Colors.black), // Borda para a tabela
-                        borderRadius: BorderRadius.circular(
-                            10), // Arredondamento nas bordas
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: DataTable(
                         headingRowColor: WidgetStateProperty.all(Colors.black),
@@ -236,14 +239,13 @@ class _PaginaMostragemCSVState extends State<PaginaMostragemCSV> {
                         ],
                         rows: docs.map<DataRow>((doc) {
                           return DataRow(cells: [
-                            DataCell(Text(doc['aluno'])),
-                            DataCell(Text(doc['atividade'])),
-                            DataCell(Text(doc['nota'].toString())),
+                            DataCell(Text(doc['aluno'] ?? '')),
+                            DataCell(Text(doc['atividade'] ?? '')),
+                            DataCell(Text(doc['nota']?.toString() ?? 'N/A')),
                             DataCell(IconButton(
                               icon: Icon(Icons.delete),
                               onPressed: () {
-                                _confirmDelete(doc
-                                    .id); // Chama a função de confirmação de exclusão
+                                _confirmDelete(doc.id);
                               },
                             )),
                           ]);

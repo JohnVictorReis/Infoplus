@@ -1,3 +1,7 @@
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+// Página de Cadastro CSV - Lançamento de Notas com Firebase   \
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 // ignore_for_file: unused_local_variable, avoid_print
 
 import 'dart:convert';
@@ -35,6 +39,9 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
     _getTurmasProfessor();
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+  // Função para obter as turmas associadas ao professor logado             \
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   Future<void> _getTurmasProfessor() async {
     try {
       DocumentSnapshot<Map<String, dynamic>> userDoc = await FirebaseFirestore
@@ -53,6 +60,10 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
       print("Erro ao recuperar turmas: $e");
     }
   }
+
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+  // Função para realizar upload das notas a partir do CSV para o Firestore \
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   Future<void> _uploadDataToFirestore(List<List<dynamic>> data) async {
     try {
       if (selectedTurma == null || selectedMateria == null) {
@@ -152,7 +163,9 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
     }
   }
 
-//Aqui pra cima é o código que foi comentado para teste da função de upload de notas juntamente com a criação do token de notificação
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+  // Mostra alerta com CPFs que não foram encontrados                       \
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   void _mostrarDialogoErroUsuarios(List<String> naoEncontrados) {
     showDialog(
       context: context,
@@ -175,6 +188,9 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
     );
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+  // Atualiza as matérias com base na turma selecionada                     \
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   Future<void> _updateMaterias(String turma) async {
     materias = [];
     try {
@@ -195,6 +211,9 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+  // Abre seletor de arquivo CSV e processa os dados                        \
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   Future<void> _pickAndLoadCsv() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
@@ -219,6 +238,9 @@ class _PaginaCadastroCSVState extends State<PaginaCadastroCSV> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\
+  // Interface da página                                                   \
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
   @override
   Widget build(BuildContext context) {
     return Scaffold(
