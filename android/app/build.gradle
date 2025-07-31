@@ -37,6 +37,7 @@ android {
         // Atualizado para compatibilidade com AGP 8.2.1 e Java 21
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -75,4 +76,5 @@ dependencies {
     // Atualizando a versão do Kotlin Gradle Plugin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'com.google.android.gms:play-services-base:18.2.0' // A versão pode ser mais atual
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
 }
