@@ -1,10 +1,16 @@
 // ignore_for_file: avoid_print
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Importações necessárias                          //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:projeto_infoplus/Pages/Components/caixa_texto.dart';
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+// Página de Perfil do Usuário                      //
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
 class PaginaUsuario extends StatefulWidget {
   const PaginaUsuario({super.key});
 
@@ -13,7 +19,9 @@ class PaginaUsuario extends StatefulWidget {
 }
 
 class _PaginaUsuarioState extends State<PaginaUsuario> {
-  // Pegando o usuário atual
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Variáveis para armazenar dados do usuário        //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   User? userAtual = FirebaseAuth.instance.currentUser;
   String nomeUsuario = '';
   String turmaUsuario = '';
@@ -27,38 +35,36 @@ class _PaginaUsuarioState extends State<PaginaUsuario> {
     _getUsuarioInfo(); // Carrega as informações do usuário logado
   }
 
-  // Função para formatar o CPF para o formato correto
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Formata o CPF para exibição                      //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   String formatarCpf(String cpf) {
-    // Remover qualquer caractere não numérico
     cpf = cpf.replaceAll(RegExp(r'\D'), '');
-
-    // Verifica se o CPF possui 11 dígitos
     if (cpf.length == 11) {
       return '${cpf.substring(0, 3)}.${cpf.substring(3, 6)}.${cpf.substring(6, 9)}-${cpf.substring(9)}';
     } else {
-      return 'CPF inválido'; // Caso o CPF não tenha o tamanho correto
+      return 'CPF inválido';
     }
   }
 
-  // Função para pegar as informações do usuário logado
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Busca os dados do usuário logado no Firestore    //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   Future<void> _getUsuarioInfo() async {
     try {
       if (userAtual != null) {
-        // Obtendo dados do Firestore com base no UID do usuário
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(userAtual!.uid)
             .get();
 
-        // Se o documento do usuário existir, atualiza os dados na tela
         if (userDoc.exists) {
           setState(() {
             nomeUsuario = userDoc['nome'] ?? 'Nome não encontrado';
             turmaUsuario = userDoc['turma'] ?? 'Turma não encontrada';
             emailUsuario = userDoc['email'] ?? 'Email não encontrado';
             roleUsuario = userDoc['role'] ?? 'Role não encontrada';
-            cpfUsuario = formatarCpf(
-                userDoc['cpf'] ?? 'CPF não encontrado'); // Formatar o CPF
+            cpfUsuario = formatarCpf(userDoc['cpf'] ?? 'CPF não encontrado');
           });
         }
       }
@@ -67,13 +73,14 @@ class _PaginaUsuarioState extends State<PaginaUsuario> {
     }
   }
 
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+  // Construção da interface da página                //
+  //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         title: const Text(
           'Perfil do Usuário',
@@ -85,7 +92,10 @@ class _PaginaUsuarioState extends State<PaginaUsuario> {
         padding: const EdgeInsets.all(20.0),
         children: [
           const SizedBox(height: 25),
-          // Ícone de foto de usuário
+
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          // Ícone de perfil do usuário                         //
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
           Center(
             child: Icon(
               Icons.person,
@@ -94,57 +104,23 @@ class _PaginaUsuarioState extends State<PaginaUsuario> {
             ),
           ),
 
-          const SizedBox(
-              height:
-                  30), // Adicionado espaçamento maior entre o ícone e as informações
+          const SizedBox(height: 30),
 
-          // Exibindo o nome do usuário
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          // Exibição do nome do usuário                       //
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
             child: Text(
               nomeUsuario.isNotEmpty ? nomeUsuario : 'Nome não encontrado',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-/*
-          // Exibindo o email do usuário
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Text(
-              emailUsuario.isNotEmpty ? emailUsuario : 'Email não encontrado',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[700]),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
 
-          // Exibindo a turma do usuário
-          Padding(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: Text(
-              'Turma: $turmaUsuario',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[800],
-              ),
-            ),
-          ),
-
-          // Detalhes do usuário / Exibição de todos os dados
-          Padding(
-            padding: const EdgeInsets.only(left: 25),
-            child: Text(
-              'Dados do Usuário',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-*/
-          // CaixaTexto com as informações do usuário como lista
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
+          // Exibição dos demais dados em CaixaTexto           //
+          //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=//
           CaixaTexto(
             nomeSessao: 'Dados do Usuário',
             texto: '''
@@ -155,7 +131,7 @@ Role: $roleUsuario
 CPF: $cpfUsuario
             ''',
             onPressed: () {
-              // Ação ao pressionar a caixa de texto (se necessário)
+              // Ação futura (editar perfil, por exemplo)
             },
           ),
         ],
